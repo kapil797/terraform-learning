@@ -1,0 +1,6 @@
+.terraform/
+*.tfstate
+*.tfstate.*        # catches all backups, not just one filename
+crash.log
+*.tfvars           # often holds secrets; we'll refine this in Phase 2
+*.tfplan
