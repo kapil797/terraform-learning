@@ -15,7 +15,7 @@ provider "aws" {
     tags = {
       Owner       = "kapil"
       Environment = "lab"
-      Project     = "lab2"
+      Project     = "lab3"
       ManagedBy   = "terraform"
     }
   }
@@ -114,19 +114,38 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_rule" {
   security_group_id = aws_security_group.lab3_sg.id
   from_port         = 80
   to_port           = 80
-  ip_protocol        = "tcp"
-  cidr_ipv4      = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+  cidr_ipv4         = "0.0.0.0/0"
+}
 
+resource "aws_vpc_security_group_egress_rule" "egress_rule" {
+  ip_protocol = "-1"
+  security_group_id = aws_security_group.lab3_sg.id
+  cidr_ipv4 = "0.0.0.0/0"
+  description = "Allow all outbound"  
 }
 
 data "aws_ssm_parameter" "lab3_ami" {
   name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 }
 resource "aws_instance" "lab3_instance" {
-  ami           = data.aws_ssm_parameter.lab3_ami.value
-  instance_type = "t3.micro"
-  subnet_id     = aws_subnet.public["a"].id
-  security_groups = [aws_security_group.lab3_sg.name]
+  ami             = data.aws_ssm_parameter.lab3_ami.value
+  instance_type   = "t3.micro"
+  subnet_id       = aws_subnet.public["a"].id
+  vpc_security_group_ids = [ aws_security_group.lab3_sg.id ]
+  user_data = <<-EOF
+    #!/bin/bash
+    dnf install -y nginx
+    echo "<h1>Hello from Kapil's Terraform lab 3</h1>" > /usr/share/nginx/html/index.html
+    systemctl enable --now nginx
+  EOF
+  user_data_replace_on_change = true
+  metadata_options {
+    http_tokens = "required"
+  }
+  root_block_device {
+    encrypted = true
+  }
   tags = {
     Name = "lab3_instance"
   }
@@ -135,3 +154,4 @@ resource "aws_instance" "lab3_instance" {
 output "instance_public_ip" {
   value = aws_instance.lab3_instance.public_ip
 }
+
