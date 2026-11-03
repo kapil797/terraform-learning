@@ -151,10 +151,25 @@ resource "aws_instance" "lab3_instance" {
     Name = "lab3_instance"
   }
 }
+resource "aws_s3_bucket" "app_data" {
+  bucket        = "kapil-lab4-app-data-001"
+  force_destroy = true
+  tags = {
+    Name = "lab3_bucket"
+  }
+}
+resource "aws_s3_object" "app_data_object" {
+  bucket  = aws_s3_bucket.app_data.id
+  key     = "index.html"
+  content = "<h1>Hello from Kapil's Terraform lab 3</h1>"
+}
 
 output "instance_public_ip" {
   value = aws_instance.lab3_instance.public_ip
 }
 output "instance_id" {
   value = aws_instance.lab3_instance.id
+}
+output "bucket_name" {
+  value = aws_s3_bucket.app_data.bucket
 }
